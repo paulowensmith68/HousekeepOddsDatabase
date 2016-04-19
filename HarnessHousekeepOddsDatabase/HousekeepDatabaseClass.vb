@@ -84,6 +84,8 @@ Public Class HousekeepDatabaseClass
                     ' Delete data
                     DeleteBettingOffers(intEventId)
                     DeleteOutcomes(intEventId)
+                    DeleteBettingOffersStaging(intEventId)
+                    DeleteOutcomesStaging(intEventId)
                     DeleteEvent(intEventId)
 
                 End While ' End: Outer Loop
@@ -107,7 +109,6 @@ Public Class HousekeepDatabaseClass
 
     Private Sub DeleteBettingOffers(eventId As Integer)
 
-        'Delete id from saved_xml (log table)
         Dim myConnection As New MySqlConnection(connectionString)
         Dim cmd As New MySqlCommand
         cmd.CommandText = "DELETE bo.* FROM bettingoffer AS bo " &
@@ -138,7 +139,6 @@ Public Class HousekeepDatabaseClass
 
     Private Sub DeleteOutcomes(eventId As Integer)
 
-        'Delete id from saved_xml (log table)
         Dim myConnection As New MySqlConnection(connectionString)
         Dim cmd As New MySqlCommand
         cmd.CommandText = "DELETE ou.* FROM outcome AS ou " &
@@ -166,9 +166,67 @@ Public Class HousekeepDatabaseClass
 
     End Sub
 
-    Private Sub DeleteEvent(eventId As Integer)
+    Private Sub DeleteBettingOffersStaging(eventId As Integer)
+
+        Dim myConnection As New MySqlConnection(connectionString)
+        Dim cmd As New MySqlCommand
+        cmd.CommandText = "DELETE bxn.* FROM bookmaker_xml_nodes AS bxn " &
+                                "INNER JOIN outcome AS ou ON ou.`id`=bxn.`outcome_Id` " &
+                                "INNER JOIN event AS ev ON ev.`id` =ou.`objectFK` " &
+                                "WHERE ou.`object`=""event"" AND ou.`objectFK`=@eventId "
+        cmd.Connection = myConnection
+        cmd.Parameters.Add(New MySqlParameter("eventId", eventId))
+
+        Try
+
+            myConnection.Open()
+            Dim rowAffected As Integer = cmd.ExecuteNonQuery()
+
+            gobjEvent.WriteToEventLog("DeleteBettingOffers : Deleted betting offers from bookmaker_xml_nodes rows: " + rowAffected.ToString)
+
+        Catch ex As Exception
+
+            gobjEvent.WriteToEventLog("DeleteBettingOffers : Delete betting offers from bookmaker_xml_nodes rows failed: " + ex.Message, EventLogEntryType.Error)
+
+        Finally
+
+            myConnection.Close()
+
+        End Try
+
+    End Sub
+
+    Private Sub DeleteOutcomesStaging(eventId As Integer)
 
         'Delete id from saved_xml (log table)
+        Dim myConnection As New MySqlConnection(connectionString)
+        Dim cmd As New MySqlCommand
+        cmd.CommandText = "DELETE bxn.* FROM bookmaker_xml_nodes AS bxn " &
+                          "WHERE  bxn.`event_id`=@eventId "
+        cmd.Connection = myConnection
+        cmd.Parameters.Add(New MySqlParameter("eventId", eventId))
+
+        Try
+
+            myConnection.Open()
+            Dim rowAffected As Integer = cmd.ExecuteNonQuery()
+
+            gobjEvent.WriteToEventLog("DeleteOutcomesStaging : Deleted outcomes from bookmaker_xml_nodes rows: " + rowAffected.ToString)
+
+        Catch ex As Exception
+
+            gobjEvent.WriteToEventLog("DeleteOutcomesStaging : Delete outcomes from bookmaker_xml_nodes rows failed: " + ex.Message, EventLogEntryType.Error)
+
+        Finally
+
+            myConnection.Close()
+
+        End Try
+
+    End Sub
+
+    Private Sub DeleteEvent(eventId As Integer)
+
         Dim myConnection As New MySqlConnection(connectionString)
         Dim myCommand As New MySqlCommand("delete from event where `id`=@id")
         myCommand.CommandType = CommandType.Text
@@ -185,6 +243,68 @@ Public Class HousekeepDatabaseClass
         Catch ex As Exception
 
             gobjEvent.WriteToEventLog("DeleteEvent : Delete event rows failed: " + ex.Message, EventLogEntryType.Error)
+
+        Finally
+
+            myConnection.Close()
+
+        End Try
+
+    End Sub
+
+    Private Sub DeleteOrphanedBettingOffersStaging()
+
+        Dim myConnection As New MySqlConnection(connectionString)
+        Dim cmd As New MySqlCommand
+        cmd.CommandText = "DELETE bxn.* FROM bookmaker_xml_nodes As bxn " &
+                          "WHERE bxn.nodeName = ""bettingoffer"" And " &
+                          "bxn.`outcome_id` Not in (select id from outcome) " &
+                          "LIMIT @limit "
+
+        cmd.Connection = myConnection
+        cmd.Parameters.Add(New MySqlParameter("limit", My.Settings.LimitOrphanedRoes))
+
+        Try
+
+            myConnection.Open()
+            Dim rowAffected As Integer = cmd.ExecuteNonQuery()
+
+            gobjEvent.WriteToEventLog("DeleteOrphanedBettingOffersStaging : Deleted Orphaned BettingOffers Staging rows: " + rowAffected.ToString)
+
+        Catch ex As Exception
+
+            gobjEvent.WriteToEventLog("DeleteOrphanedBettingOffersStaging : Delete Orphaned BettingOffers Staging rows failed: " + ex.Message, EventLogEntryType.Error)
+
+        Finally
+
+            myConnection.Close()
+
+        End Try
+
+    End Sub
+
+    Private Sub DeleteOrphanedOutcomesStaging()
+
+        Dim myConnection As New MySqlConnection(connectionString)
+        Dim cmd As New MySqlCommand
+        cmd.CommandText = "DELETE bxn.* FROM bookmaker_xml_nodes As bxn " &
+                          "WHERE bxn.nodeName = ""outcome"" And " &
+                          "bxn.`event_id` Not in (select id from event) " &
+                          "LIMIT @limit "
+
+        cmd.Connection = myConnection
+        cmd.Parameters.Add(New MySqlParameter("limit", My.Settings.LimitOrphanedRoes))
+
+        Try
+
+            myConnection.Open()
+            Dim rowAffected As Integer = cmd.ExecuteNonQuery()
+
+            gobjEvent.WriteToEventLog("DeleteOrphanedOutcomesStaging : Deleted Orphaned Outcomes Staging rows: " + rowAffected.ToString)
+
+        Catch ex As Exception
+
+            gobjEvent.WriteToEventLog("DeleteOrphanedOutcomesStaging : Delete Orphaned Outcomes Staging rows failed: " + ex.Message, EventLogEntryType.Error)
 
         Finally
 

@@ -19,7 +19,10 @@
       <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="LimitEventRows" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">100</Value>
+      <Value Profile="(Default)">500</Value>
+    </Setting>
+    <Setting Name="LimitOrphanedRoes" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">1000</Value>
     </Setting>
   </Settings>
 </SettingsFile>

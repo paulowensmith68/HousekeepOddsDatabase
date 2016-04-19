@@ -103,13 +103,25 @@ Namespace My
         
         <Global.System.Configuration.UserScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("100")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("500")>  _
         Public Property LimitEventRows() As Integer
             Get
                 Return CType(Me("LimitEventRows"),Integer)
             End Get
             Set
                 Me("LimitEventRows") = value
+            End Set
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("1000")>  _
+        Public Property LimitOrphanedRoes() As Integer
+            Get
+                Return CType(Me("LimitOrphanedRoes"),Integer)
+            End Get
+            Set
+                Me("LimitOrphanedRoes") = value
             End Set
         End Property
     End Class

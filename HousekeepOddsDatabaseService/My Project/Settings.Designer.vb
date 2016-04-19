@@ -171,9 +171,9 @@ Namespace My
     Friend Module MySettingsProperty
         
         <Global.System.ComponentModel.Design.HelpKeywordAttribute("My.Settings")>  _
-        Friend ReadOnly Property Settings() As Global.HarnessHousekeepOddsDatabase.My.MySettings
+        Friend ReadOnly Property Settings() As Global.HousekeepOddsDatabaseService.My.MySettings
             Get
-                Return Global.HarnessHousekeepOddsDatabase.My.MySettings.Default
+                Return Global.HousekeepOddsDatabaseService.My.MySettings.Default
             End Get
         End Property
     End Module
